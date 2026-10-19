@@ -25,7 +25,7 @@ weather:
     base-url: https://www.ilmateenistus.ee/
     endpoint: ilma_andmed/xml/observations.php
   stations: Tallinn-Harku,Tartu-Tõravere,Pärnu
-  schedule: 0 58 * * * ?
+  schedule: 0 15 * * * ?
 
 springdoc:
   api-docs:
