@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class DeliveryFeeService {
     public double calculateFee(City city, VehicleType vehicleType, LocalDateTime time) {
         WeatherData weatherData = weatherDataRepository
                 .findFirstByNameIgnoreCaseAndTimestampLessThanEqualOrderByTimestampDesc(city.getStationName(), time)
-                .orElseThrow();
+                .orElseThrow(() -> new NoSuchElementException("Weather data does not exist for time %s".formatted(time)));
 
         double totalExtraFee = 0;
         totalExtraFee += calculateRegionalBaseFee(city, vehicleType);
@@ -55,7 +56,7 @@ public class DeliveryFeeService {
         }
 
         // This should never reach ideally
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Unknown city entered");
     }
 
     private double calculateATEF(VehicleType vehicleType, double temperature) {
