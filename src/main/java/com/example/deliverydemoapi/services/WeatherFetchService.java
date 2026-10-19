@@ -11,8 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.List;
 
 @Service
@@ -39,10 +38,9 @@ public class WeatherFetchService {
 
         if (observations != null && !observations.stations().isEmpty()) {
 
-            LocalDateTime timestamp = LocalDateTime.ofEpochSecond(
-                    observations.timestamp(),
-                    0,
-                    ZoneOffset.UTC);
+            LocalDateTime timestamp = LocalDateTime.ofInstant(
+                    Instant.ofEpochSecond(observations.timestamp()),
+                    ZoneId.of("Europe/Tallinn"));
 
             observations.stations()
                     .parallelStream()
