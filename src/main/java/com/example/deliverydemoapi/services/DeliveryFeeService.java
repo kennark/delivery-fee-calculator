@@ -6,9 +6,11 @@ import com.example.deliverydemoapi.data.enums.VehicleType;
 import com.example.deliverydemoapi.data.repository.WeatherDataRepository;
 import com.example.deliverydemoapi.exceptions.VehicleForbiddenException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 @RequiredArgsConstructor
 public class DeliveryFeeService {
 

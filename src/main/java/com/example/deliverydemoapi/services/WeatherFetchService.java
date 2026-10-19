@@ -8,14 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class WeatherFetchService {
 
