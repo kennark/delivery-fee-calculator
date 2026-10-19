@@ -11,7 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -27,6 +29,11 @@ public class WeatherFetchService {
     @Value("${weather.api.endpoint}")
     private String endpoint;
 
+    /**
+     * Fetches the latest weather observations from the configured weather API and
+     * persists the data for the configured target stations. This method is invoked
+     * on the schedule defined by the {@code weather.schedule} property.
+     */
     @Scheduled(cron = "${weather.schedule:0 15 * * * ?}")
     public void fetchData() {
 

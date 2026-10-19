@@ -26,6 +26,18 @@ public class DeliveryFeeService {
     private final WeatherConditionFeeRepository weatherConditionFeeRepository;
 
 
+    /**
+     * Calculates the total delivery fee for the given city, vehicle type and time.
+     * The fee is composed of the regional base fee plus any applicable extra fees
+     * based on air temperature, wind speed and weather phenomenon.
+     *
+     * @param city        the city the delivery is made in
+     * @param vehicleType the type of vehicle used for the delivery
+     * @param time        the time at which the fee should be evaluated
+     * @return the total delivery fee
+     * @throws java.util.NoSuchElementException if no weather data exists for the given time
+     * @throws VehicleForbiddenException        if the selected vehicle type is forbidden under the current weather conditions
+     */
     public double calculateFee(City city, VehicleType vehicleType, LocalDateTime time) {
         WeatherData weatherData = weatherDataRepository
                 .findFirstByNameIgnoreCaseAndTimestampLessThanEqualOrderByTimestampDesc(city.getStationName(), time)

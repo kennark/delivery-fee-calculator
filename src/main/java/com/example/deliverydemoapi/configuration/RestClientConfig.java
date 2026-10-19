@@ -11,6 +11,11 @@ public class RestClientConfig {
     @Value("${weather.api.base-url}")
     private String url;
 
+    /**
+     * Creates a {@link RestClient} bean preconfigured with the weather API base URL.
+     *
+     * @return a configured {@link RestClient} instance
+     */
     @Bean
     RestClient restClient() {
 
