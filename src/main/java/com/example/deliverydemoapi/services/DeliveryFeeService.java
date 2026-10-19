@@ -1,8 +1,13 @@
 package com.example.deliverydemoapi.services;
 
+import com.example.deliverydemoapi.data.entity.RegionalBaseFee;
+import com.example.deliverydemoapi.data.entity.WeatherConditionFee;
 import com.example.deliverydemoapi.data.entity.WeatherData;
 import com.example.deliverydemoapi.data.enums.City;
 import com.example.deliverydemoapi.data.enums.VehicleType;
+import com.example.deliverydemoapi.data.enums.WeatherConditionRuleType;
+import com.example.deliverydemoapi.data.repository.RegionalBaseFeeRepository;
+import com.example.deliverydemoapi.data.repository.WeatherConditionFeeRepository;
 import com.example.deliverydemoapi.data.repository.WeatherDataRepository;
 import com.example.deliverydemoapi.exceptions.VehicleForbiddenException;
 import lombok.RequiredArgsConstructor;
@@ -10,12 +15,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryFeeService {
 
     private final WeatherDataRepository weatherDataRepository;
+    private final RegionalBaseFeeRepository regionalBaseFeeRepository;
+    private final WeatherConditionFeeRepository weatherConditionFeeRepository;
 
 
     public double calculateFee(City city, VehicleType vehicleType, LocalDateTime time) {
@@ -33,62 +41,50 @@ public class DeliveryFeeService {
         return totalExtraFee;
     }
 
-
     private double calculateRegionalBaseFee(City city, VehicleType vehicleType) {
-        if (city == City.TALLINN) {
-            return switch (vehicleType) {
-                case CAR -> 4;
-                case SCOOTER -> 3.5;
-                case BIKE -> 3;
-            };
-        } else if (city == City.TARTU) {
-            return switch (vehicleType) {
-                case CAR -> 3.5;
-                case SCOOTER -> 3;
-                case BIKE -> 2.5;
-            };
-        } else if (city == City.PÄRNU) {
-            return switch (vehicleType) {
-                case CAR -> 3;
-                case SCOOTER -> 2.5;
-                case BIKE -> 2;
-            };
-        }
 
-        // This should never reach ideally
-        throw new IllegalArgumentException("Unknown city entered");
+        Optional<RegionalBaseFee> fee = regionalBaseFeeRepository
+                .findByCityAndVehicleType(city, vehicleType);
+
+        if (fee.isEmpty()) return 0.0;
+
+        return fee.get().getFee();
     }
 
     private double calculateATEF(VehicleType vehicleType, double temperature) {
-        if (vehicleType == VehicleType.CAR) return 0;
 
-        if (temperature < -10.0) return 1;
-        if (temperature <= 0) return 0.5;
-        return 0;
+        Optional<WeatherConditionFee> feeOptional = weatherConditionFeeRepository.findByTypeAndVehicleTypeAndNumericValue(WeatherConditionRuleType.AIR_TEMPERATURE, vehicleType, temperature);
+
+        if (feeOptional.isEmpty()) return 0.0;
+
+        WeatherConditionFee fee = feeOptional.get();
+        if (!fee.isAllowed())
+            throw new VehicleForbiddenException();
+        return fee.getFee();
     }
 
     private double calculateWSEF(VehicleType vehicleType, double windSpeed) {
-        if (vehicleType == VehicleType.BIKE) {
-            if (windSpeed >= 10 && windSpeed <= 20) return 0.5;
-            if (windSpeed > 20) throw new VehicleForbiddenException();
-        }
-        return 0;
+
+        Optional<WeatherConditionFee> feeOptional = weatherConditionFeeRepository.findByTypeAndVehicleTypeAndNumericValue(WeatherConditionRuleType.WIND_SPEED, vehicleType, windSpeed);
+
+        if (feeOptional.isEmpty()) return 0.0;
+
+        WeatherConditionFee fee = feeOptional.get();
+        if (!fee.isAllowed())
+            throw new VehicleForbiddenException();
+        return fee.getFee();
+
     }
 
     private double calculateWPEF(VehicleType vehicleType, String phenomenon) {
-        if (vehicleType == VehicleType.CAR) return 0;
-        if (phenomenon == null || phenomenon.isEmpty()) return 0;
 
-        phenomenon = phenomenon.toLowerCase();
+        Optional<WeatherConditionFee> feeOptional = weatherConditionFeeRepository.findByTypeAndVehicleTypeAndStringValueLikeIgnoreCase(WeatherConditionRuleType.WEATHER_PHENOMENON, vehicleType, phenomenon);
 
-        if (phenomenon.contains("snow") || phenomenon.contains("sleet")) return 1;
-        if (phenomenon.contains("rain")) return 0.5;
+        if (feeOptional.isEmpty()) return 0.0;
 
-        if (phenomenon.contains("glaze") || phenomenon.contains("hail") || phenomenon.contains("thunder"))
+        WeatherConditionFee fee = feeOptional.get();
+        if (!fee.isAllowed())
             throw new VehicleForbiddenException();
-
-        return 0;
+        return fee.getFee();
     }
-
-
 }
